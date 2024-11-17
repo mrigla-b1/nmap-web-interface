@@ -1,0 +1,80 @@
+/* styles.css */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f9;
+    padding: 20px;
+}
+body {
+    background-color: #f5f7fa;
+	font-size: min(15px, 3vw);
+}
+
+h1,h3,h4 {
+    text-align: center;
+}
+
+form,.commeforme {
+    max-width: 600px;
+    margin: 0 auto;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+input, select, button {
+    font-size:20px;
+    width: 100%;
+    padding: 10px;
+    margin: 8px 0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    cursor: pointer;
+    background-color: #4a90e2;
+          color: #fff;
+}
+
+button:hover {
+
+	background-color: #0056b3;
+
+}
+
+#scan-result-table,#network-result-table {
+    margin-top: 20px;
+    width: 100%;
+    border-collapse: collapse;
+    font-size:17px;
+}
+
+#scan-result-table th, #scan-result-table td , #network-result-table th, #network-result-table td {
+    font-size:17px;
+     padding: 8px;
+    text-align: center;
+}
+
+#scan-result-table th , #network-result-table th {
+    background-color: #f2f2f2;
+}
+
+.open-port {
+    background-color: #d4edda; /* Green for open port */
+}
+
+.closed-port {
+    background-color: #f8d7da; /* Red for closed port */
+}
+
+#scan-status {
+    margin-top: 20px;
+    text-align: center;
+}
+input{
+    width: 96%;
+}

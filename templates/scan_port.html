@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Port Scan</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <h1>Port Scan</h1>
+    <form id="scan-form" method="POST" action="/scan">
+        <input type="text" id="ip-input" name="ip" placeholder="Enter IP address" required><br><br>
+
+        <label for="scan-type">Select Scan Type:</label>
+        <select id="scan-type" name="scan-type" required>
+	    <option value="-sS" selected>SYN Scan (-sS)</optio>
+            <option value="-sT">TCP Connect Scan (-sT)</option>
+            <option value="-sX">Xmas Scan (-sX)</option>
+            <option value="-sF">FIN Scan (-sF)</option>
+            <option value="-sN">NULL Scan (-sN)</option>
+        </select><br><br>
+
+        <label for="scan-speed">Select Scan Speed:</label>
+        <select id="scan-speed" name="scan-speed">
+            <option value="T1">T1 (Paranoid)</option>
+            <option value="T2">T2 (Sneaky)</option>
+            <option value="T3">T3 (Polite)</option>
+            <option value="T4" selected>T4 (Normal)</option>
+            <option value="T5" selected>T5 (Aggressive)</option>
+        </select><br><br>
+
+        <label for="port-input">Enter Port Number (Optional):</label>
+        <input type="text" id="port-input" name="port" placeholder="e.g., 80, 443"><br><br>
+
+        <button id="ok" type="submit">Start Scan</button>
+	<button onclick="window.location.href='/scanNetwork'" style="margin-top: 20px;">Return</button>
+
+    </form>
+
+    <div id="scan-status"></div>
+    <table id="scan-result-table" border="1" style="width: 100%; display: none;">
+        <thead>
+            <tr>
+                <th>Port</th>
+                <th>State</th>
+                <th>Service</th>
+            </tr>
+        </thead>
+        <tbody id="scan-result-body"></tbody>
+    </table>
+
+    <script>
+        const form = document.getElementById('scan-form');
+        const statusDiv = document.getElementById('scan-status');
+        const resultTable = document.getElementById('scan-result-table');
+        const resultBody = document.getElementById('scan-result-body');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const ip = document.getElementById('ip-input').value;
+            const scanType = document.getElementById('scan-type').value;
+            const scanSpeed = document.getElementById('scan-speed').value;
+            const port = document.getElementById('port-input').value;
+
+            statusDiv.textContent = 'Starting scan...';
+            resultBody.innerHTML = '';
+            resultTable.style.display = 'none';
+
+            const response = await fetch('/scan', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ip, scanType, scanSpeed, port })
+            });
+
+            const data = await response.json();
+            if (data.status === 'completed') {
+                statusDiv.textContent = `Scan completed for ${data.ip}`;
+                displayResults(data.result);
+            } else {
+                statusDiv.textContent = 'Error: Invalid IP address';
+            }
+        });
+
+	  function displayResults(result) {
+        resultTable.style.display = 'table';
+        resultBody.innerHTML = '';
+
+        const lines = result.split('\n');
+        for (const line of lines) {
+            // Updated regex to match "open|filtered" state and capture service information
+            const match = line.match(/^(\d+\/\w+)\s+(open\|filtered|open|filtered)\s+(\S+)/);
+            if (match) {
+                const [_, port, state, service] = match;
+                const row = document.createElement('tr');
+                row.innerHTML = `<td>${port}</td><td>${state}</td><td>${service}</td>`;
+                resultBody.appendChild(row);
+            }
+        }
+    }
+	/*
+        function displayResults(result) {
+            resultTable.style.display = 'table';
+            resultBody.innerHTML = '';
+
+            const lines = result.split('\n');
+            for (const line of lines) {
+		    const match = line.match(/^(\d+\/\w+)\s+(\w+)\s+(\S+)/);
+		    const match = line.match(/^(\d+\/\w+)\s+(open|filtered)\s+(\S+)/);
+                if (match) {
+                    const [_, port, state, service] = match;
+                    const row = document.createElement('tr');
+                    row.innerHTML = `<td>${port}</td><td>${state}</td><td>${service}</td>`;
+                    resultBody.appendChild(row);
+                }
+            }
+	}
+	function displayResults(result) {
+    resultTable.style.display = 'table';
+    resultBody.innerHTML = '';
+
+    const lines = result.split('\n');
+    for (const line of lines) {
+        // Updated regex to match "open" or "filtered" states and capture service
+        const match = line.match(/^(\d+\/\w+)\s+(open|filtered)\s+(\S+)/);
+        if (match) {
+            const [_, port, state, service] = match;
+            const row = document.createElement('tr');
+            row.innerHTML = `<td>${port}</td><td>${state}</td><td>${service}</td>`;
+            resultBody.appendChild(row);
+        }
+    }
+}
+*/
+    </script>
+</body>
+</html>
+ 

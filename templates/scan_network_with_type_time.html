@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Network Scan</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <h1>Network Host Scan</h1>
+    <div class="commeforme">        
+<!-- Input field for IP/Subnet -->
+    <label for="ip-input">Enter IP/Subnet to scan:</label>
+    <input type="text" id="ip-input" placeholder="e.g., 192.168.1.0/24 , 192.168.1.0-255 , 192.168.1.1" required>
+    
+    <!-- Dropdown for scan type -->
+    <label for="scan-type">Select Scan Type:</label>
+    <select id="scan-type">
+        <option value="-sn">ICMP Ping Scan</option>
+        <option value="-PR">ARP Ping Scan</option>
+        <option value="-sS">SYN Ping Scan</option>
+        <option value="-sU">UDP Ping Scan</option>
+        <option value="-sA">TCP ACK Scan</option>
+    </select>
+
+    <!-- Dropdown for timing options -->
+    <label for="timing-option">Select Timing Level:</label>
+    <select id="timing-option">
+	<option value="T1">T1 (Paranoid)</option>
+            <option value="T2">T2 (Sneaky)</option>
+            <option value="T3">T3 (Polite)</option>
+            <option value="T4" >T4 (Normal)</option>
+            <option value="T5"selected>T5 (Aggressive)</option>
+
+    </select>
+    
+    <!-- Button to start the network scan -->
+    <button id="scan-network-button">Scan Network</button>
+     <button onclick="window.location.href='/scanNetwork'" style="margin-top: 20px;">Return</button>
+    </div>
+     <!-- Status message -->
+    <div id="network-scan-status"></div>
+    
+    <!-- Table to display scan results -->
+    <table id="network-result-table" border="1" style="width: 100%; display: none;">
+        <thead>
+            <tr>
+                <th>IP Address</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody id="network-result-body"></tbody>
+    </table>
+
+    <script>
+        document.getElementById('scan-network-button').addEventListener('click', async () => {
+            const ipInput = document.getElementById('ip-input').value.trim();
+            const scanType = document.getElementById('scan-type').value;
+            const timingOption = document.getElementById('timing-option').value;
+            const statusDiv = document.getElementById('network-scan-status');
+            const resultTable = document.getElementById('network-result-table');
+            const resultBody = document.getElementById('network-result-body');
+
+            if (!ipInput) {
+                statusDiv.textContent = 'Please enter a valid IP address or subnet.';
+                return;
+            }
+
+            statusDiv.textContent = 'Starting network scan...';
+            resultBody.innerHTML = '';
+            resultTable.style.display = 'none';
+
+            const response = await fetch('/scanNetwork', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ip: ipInput, scan_type: scanType, timing_option: timingOption })
+            });
+
+            const data = await response.json();
+            
+            if (data.status === 'completed') {
+                statusDiv.textContent = 'Network scan completed';
+                resultTable.style.display = 'table';
+                resultBody.innerHTML = '';
+
+                data.active_hosts.forEach(ip => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `<td>${ip}</td><td>Active</td>`;
+                    resultBody.appendChild(row);
+                });
+            } else {
+                statusDiv.textContent = `Error: ${data.message}`;
+            }
+        });
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OS Scan</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+<style>
+p {
+  font-size: 20px;
+}
+</style>
+</head>
+<body>
+    <h1>Operating System Scan</h1>
+    <form id="os-scan-form">
+        <input type="text" id="ip-input" name="ip" placeholder="Enter IP address" required>
+        <button type="submit">Start OS Scan</button>
+	<button onclick="window.location.href='/scanNetwork'" style="margin-top: 20px;">Return</button>
+
+    </form>
+
+    <div id="scan-status"></div>
+    <div id="os-details" style="display: none;">
+        <h2>OS Details</h2>
+        <p><strong>Device Type:</strong> <span id="device-type"></span></p>
+        <p><strong>Running OS:</strong> <span id="running-os"></span></p>
+        <p><strong>OS CPE:</strong> <span id="os-cpe"></span></p>
+        <p><strong>Aggressive OS Guesses:</strong> <span id="os-guesses"></span></p>
+        <p><strong>Network Distance:</strong> <span id="network-distance"></span></p>
+    </div>
+
+    <script>
+        const form = document.getElementById('os-scan-form');
+        const statusDiv = document.getElementById('scan-status');
+        const osDetailsDiv = document.getElementById('os-details');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const ip = document.getElementById('ip-input').value;
+
+            statusDiv.textContent = 'Starting scan...';
+            osDetailsDiv.style.display = 'none';
+
+            const response = await fetch('/os_scan', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ip })
+            });
+
+            const data = await response.json();
+            if (data.status === 'completed') {
+                statusDiv.textContent = `Scan completed for ${data.ip}`;
+                displayResults(data.os_details);
+            } else {
+                statusDiv.textContent = 'Error: ' + data.message;
+            }
+        });
+
+        function displayResults(details) {
+            document.getElementById('device-type').textContent = details.device_type;
+            document.getElementById('running-os').textContent = details.running_os;
+            document.getElementById('os-cpe').textContent = details.os_cpe;
+            document.getElementById('os-guesses').textContent = details.os_guesses;
+            document.getElementById('network-distance').textContent = details.network_distance;
+            osDetailsDiv.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
+

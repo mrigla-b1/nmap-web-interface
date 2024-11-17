@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ScanMaster Pro Advanced</title>
+    <style>
+        /* Same styling as before */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f7fa;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            background-color: #fff;
+            padding: 20px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #4a4e69;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        label {
+            font-size: 14px;
+            color: #555;
+        }
+
+        input[type="text"],
+        select {
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        button {
+            padding: 12px;
+            font-size: 16px;
+            background-color: #4a4e69;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        #download-button {
+            display: none; /* Hide by default */
+            margin-top: 10px;
+            padding: 10px;
+            font-size: 16px;
+            background-color: #4a90e2;
+            color: #fff;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: center;
+            transition: background-color 0.3s;
+            text-decoration: none;
+            display: inline-block; /* Make it behave like a button */
+        }
+
+        #results-container {
+            margin-top: 15px;
+            background-color: #f0f0f0;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>ScanMaster Pro Advanced</h1>
+        <form id="scan-form">
+            <label for="ip-input">IP Address/Range/List/Domain:</label>
+            <input type="text" id="ip-input" name="ip" placeholder="e.g., 192.168.1.1, 192.168.1.1-10, example.com" required>
+
+            <label for="port-input">Ports:</label>
+            <input type="text" id="port-input" name="port" placeholder="Single (80), range (80-100), or list (80 443)">
+
+            <label for="scan-technique">Scan Technique:</label>
+            <select id="scan-technique" name="technique">
+                <option value="-sS">TCP SYN Scan</option>
+                <option value="-sT">TCP Connect Scan</option>
+                <option value="-sU">UDP Scan</option>
+                <option value="-sA">TCP ACK Scan</option>
+                <option value="-sW">TCP Window Scan</option>
+                <option value="-sM">Maimon Scan</option>
+                <option value="-sn">Host Discovery</option>
+                <option value="--system-dns">No DNS Resolution</option>
+            </select>
+
+            <label for="speed">Scan Speed:</label>
+            <select id="speed" name="speed">
+                <option value="-T1">T1</option>
+                <option value="-T2">T2</option>
+                <option value="-T3">T3</option>
+                <option value="-T4">T4</option>
+                <option value="-T5">T5</option>
+            </select>
+
+            <label for="verbosity">Verbosity:</label>
+            <select id="verbosity" name="verbosity">
+                <option value="-v">-v</option>
+                <option value="-vv">-vv</option>
+                <option value="-vvv">-vvv</option>
+                <option value="-d">Debug</option>
+            </select>
+
+            <label for="script-category">Script Category:</label>
+            <select id="script-category" name="script">
+                <option value="">None</option>
+                <option value="auth">auth</option>
+                <option value="brute">brute</option>
+                <option value="discovery">discovery</option>
+                <option value="dos">dos</option>
+                <option value="exploit">exploit</option>
+                <option value="external">external</option>
+                <option value="fuzzer">fuzzer</option>
+                <option value="intrusive">intrusive</option>
+                <option value="malware">malware</option>
+                <option value="safe">safe</option>
+                <option value="version">version</option>
+                <option value="vuln">vuln</option>
+            </select>
+
+            <button type="submit">Start Scan</button>
+        </form>
+
+        <div id="scan-status"></div>
+        <div id="results-container"></div>
+        <a id="download-button" download="scan_results.txt">Download Results</a>
+    </div>
+
+    <script>
+        const form = document.getElementById('scan-form');
+        const statusDiv = document.getElementById('scan-status');
+        const resultsContainer = document.getElementById('results-container');
+        const downloadButton = document.getElementById('download-button');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(form);
+            const params = new URLSearchParams(formData);
+
+            statusDiv.textContent = 'Starting scan...';
+            resultsContainer.innerHTML = ''; // Clear previous results
+            downloadButton.style.display = 'none'; // Hide the download button until results are ready
+
+            const response = await fetch('/advancedscan', {
+                method: 'POST',
+                body: params
+            });
+
+            const data = await response.json();
+            if (data.status === 'started') {
+                statusDiv.textContent = `Scan started for ${data.ip}`;
+                await getResult(data.ip);
+            } else {
+                statusDiv.textContent = 'Error starting scan.';
+            }
+        });
+
+        async function getResult(ip) {
+            while (true) {
+                const response = await fetch(`/result/${ip}`);
+                const data = await response.json();
+
+                if (data.status === 'completed') {
+                    statusDiv.textContent = 'Scan completed.';
+                    resultsContainer.innerHTML = `<pre>${data.result}</pre>`;
+                    prepareDownload(data.result);
+                    break;
+                } else {
+                    statusDiv.textContent = 'Scan in progress...';
+                    await new Promise(resolve => setTimeout(resolve, 2000)); // Poll every 2 seconds
+                }
+            }
+        }
+
+        function prepareDownload(result) {
+            const blob = new Blob([result], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            downloadButton.href = url;
+            downloadButton.style.display = 'inline-block'; // Show the download button
+        }
+    </script>
+</body>
+</html>
+
+ 
