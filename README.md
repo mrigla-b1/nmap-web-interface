@@ -31,6 +31,26 @@ python3 nmap-web-interface.py
 
 ---
 
+## 🐳 Running with Docker
+
+To run the application using Docker, follow these steps:
+
+1️⃣ **Install Docker** (if not already installed).
+
+2️⃣ **Pull the Docker image**:
+```sh
+docker pull slmanblk/nmap-web-interface:latest
+```
+
+3️⃣ **Run the container**:
+```sh
+docker run -d -p 8080:80 slmanblk/nmap-web-interface:latest
+```
+
+4️⃣ **Access the web interface** by opening `http://localhost:8080` in your browser.
+
+---
+
 ## 📸 Screenshots
 Here are some previews of the interface:
 
